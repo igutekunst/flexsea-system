@@ -136,8 +136,8 @@ typedef struct {
 } BlockWrapper;
 
 
-#define ATOMIC_BEGIN()
-#define ATOMIC_END()
+#define ATOMIC_BEGIN() 	__disable_irq()
+#define ATOMIC_END()	__enable_irq()
 
 #endif
 

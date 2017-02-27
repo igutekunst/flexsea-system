@@ -37,7 +37,7 @@
 #include <core_cm4.h>
 #include <stdio.h>
 struct Block {
-	char data[FM_BLOCK_SIZE];
+	char data[FM_BLOCK_SIZE] __attribute__ ((aligned (16)));
 	struct Block * next;
 	struct Block * prev;
 	size_t index;
@@ -102,11 +102,6 @@ void* fm_pool_allocate_block(void)
 {
 	ATOMIC_BEGIN();
 	Block* new_block = first;
-	if (isInterrupt())
-	{
-		fail();
-	}
-
 
 	if (first != NULL)
 		first = first->next;
@@ -124,15 +119,12 @@ void* fm_pool_allocate_block(void)
 int fm_pool_free_block(void* raw_data) {
 	if (raw_data != NULL)
 	{
-		if (isInterrupt()) {
-			fail();
-		}
 		Block* block =  get_block(raw_data);
 		ATOMIC_BEGIN();
 		block->next = first;
 		first = block;
-		ATOMIC_END();
 		block->prev = NULL;
+		ATOMIC_END();
 		return 0;
 	}
 	return -1;
@@ -158,11 +150,6 @@ int fm_queue_init(MsgQueue* q, size_t max_size)
 int fm_queue_put(MsgQueue* q, void* item) {
 	if (q == NULL || item == NULL)
 		return -1;
-	if (isInterrupt())
-	{
-		fail();
-	}
-
 
 	ATOMIC_BEGIN();
 	if (q->size >= q->max_size)
@@ -195,10 +182,6 @@ int fm_queue_put(MsgQueue* q, void* item) {
 int fm_queue_put_tail(MsgQueue* q, void * item) {
 	if (q == NULL || item == NULL)
 		return -1;
-	if (isInterrupt())
-	{
-		fail();
-	}
 
 	ATOMIC_BEGIN();
 	if (q->size >= q->max_size)
@@ -234,11 +217,6 @@ int fm_queue_put_tail(MsgQueue* q, void * item) {
 void* fm_queue_get(MsgQueue* q ) {
 	if (q == NULL)
 		return NULL;
-	if (isInterrupt())
-	{
-		fail();
-	}
-
 	ATOMIC_BEGIN();
 	if (q->size == 0)
 	{
